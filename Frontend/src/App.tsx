@@ -23,9 +23,10 @@ import type {
 } from './types'
 
 const API_BASE_URL =
-  typeof window !== 'undefined' && window.location.hostname
+  import.meta.env.VITE_API_BASE_URL?.replace(/\/+$/, '') ||
+  (typeof window !== 'undefined' && window.location.hostname
     ? `${window.location.protocol}//${window.location.hostname}:8000`
-    : 'http://127.0.0.1:8000'
+    : 'http://127.0.0.1:8000')
 
 function App() {
   const [authChecking, setAuthChecking] = useState(true)

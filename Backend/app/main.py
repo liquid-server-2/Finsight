@@ -33,6 +33,7 @@ from app.categorizer import (
 )
 from app.database import SessionLocal, engine
 from app.hdfc_xls_parser import parse_hdfc_xls
+from app.init_db import init_database
 from app.models import Account, Merchant, MerchantRule, Transaction, User
 from app.risk import compute_account_risk
 from app.schemas.account import AccountCreate, AccountResponse, AccountSummaryResponse
@@ -99,6 +100,7 @@ def check_database_connection():
     try:
         with engine.connect() as connection:
             connection.execute(text("SELECT 1"))
+        init_database()
     except Exception as exc:
         # Sanitize credentials/passwords from error message and traceback before logging to stderr
         tb_str = "".join(traceback.format_exception(type(exc), exc, exc.__traceback__))

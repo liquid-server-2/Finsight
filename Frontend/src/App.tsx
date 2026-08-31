@@ -22,11 +22,24 @@ import type {
   UserResponse,
 } from './types'
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL?.replace(/\/+$/, '') ||
-  (typeof window !== 'undefined' && window.location.hostname
-    ? `${window.location.protocol}//${window.location.hostname}:8000`
-    : 'http://127.0.0.1:8000')
+const PRODUCTION_BACKEND_URL = 'https://finsight-backend-tlsn.onrender.com'
+
+const API_BASE_URL = (() => {
+  if (import.meta.env.VITE_API_BASE_URL) {
+    return import.meta.env.VITE_API_BASE_URL.replace(/\/+$/, '')
+  }
+  if (typeof window !== 'undefined' && window.location.hostname) {
+    const isLocal =
+      window.location.hostname === 'localhost' ||
+      window.location.hostname === '127.0.0.1' ||
+      window.location.hostname.startsWith('192.168.') ||
+      window.location.hostname.endsWith('.local')
+    return isLocal
+      ? `${window.location.protocol}//${window.location.hostname}:8000`
+      : PRODUCTION_BACKEND_URL
+  }
+  return import.meta.env.PROD ? PRODUCTION_BACKEND_URL : 'http://127.0.0.1:8000'
+})()
 
 function App() {
   const [authChecking, setAuthChecking] = useState(true)

@@ -125,7 +125,7 @@ def read_root():
 # ==========================================
 
 @app.post("/api/auth/register", response_model=UserResponse, status_code=201)
-def register_user(payload: UserRegister, session: Session = Depends(get_db)):
+def register_user(payload: UserRegister, response: Response, session: Session = Depends(get_db)):
     existing_user = session.scalar(select(User).where(User.email == payload.email))
     if existing_user is not None:
         raise HTTPException(status_code=409, detail="Email already registered.")
@@ -138,6 +138,8 @@ def register_user(payload: UserRegister, session: Session = Depends(get_db)):
     try:
         session.commit()
         session.refresh(user)
+        token = create_access_token(user_id=user.id, email=user.email)
+        set_auth_cookie(response, token)
         return UserResponse.model_validate(user)
     except IntegrityError:
         session.rollback()

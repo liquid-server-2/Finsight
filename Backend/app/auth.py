@@ -99,14 +99,18 @@ def decode_access_token(token: str) -> dict | None:
         return None
 
 
+COOKIE_SAMESITE = os.getenv("COOKIE_SAMESITE", "none")
+COOKIE_SECURE = os.getenv("COOKIE_SECURE", "true").lower() in ("true", "1", "yes")
+
+
 def set_auth_cookie(response: Response, token: str) -> None:
     response.set_cookie(
         key=AUTH_COOKIE_NAME,
         value=token,
         max_age=COOKIE_MAX_AGE_SECONDS,
         httponly=True,
-        samesite="lax",
-        secure=False,
+        samesite=COOKIE_SAMESITE,
+        secure=COOKIE_SECURE,
         path="/",
     )
 
@@ -116,7 +120,8 @@ def clear_auth_cookie(response: Response) -> None:
         key=AUTH_COOKIE_NAME,
         path="/",
         httponly=True,
-        samesite="lax",
+        samesite=COOKIE_SAMESITE,
+        secure=COOKIE_SECURE,
     )
 
 

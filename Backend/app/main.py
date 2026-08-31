@@ -3,6 +3,8 @@ from __future__ import annotations
 import csv
 import io
 import re
+import sys
+import traceback
 from datetime import datetime, timezone
 from decimal import Decimal, InvalidOperation
 
@@ -79,8 +81,18 @@ def check_database_connection():
     try:
         with engine.connect() as connection:
             connection.execute(text("SELECT 1"))
-    except Exception:
-        raise RuntimeError("Database connectivity check failed.") from None
+    except Exception as exc:
+        # Sanitize credentials/passwords from error message and traceback before logging to stderr
+        tb_str = "".join(traceback.format_exception(type(exc), exc, exc.__traceback__))
+        sanitized_tb = re.sub(r"://[^@\s]+@", "://***:***@", tb_str)
+        sanitized_tb = re.sub(r"password=[^\s]+", "password=***", sanitized_tb, flags=re.IGNORECASE)
+        sanitized_msg = re.sub(r"://[^@\s]+@", "://***:***@", str(exc))
+        sanitized_msg = re.sub(r"password=[^\s]+", "password=***", sanitized_msg, flags=re.IGNORECASE)
+
+        sys.stderr.write(f"\n[DATABASE STARTUP ERROR] {type(exc).__name__}: {sanitized_msg}\n")
+        sys.stderr.write(f"[DATABASE STARTUP TRACEBACK]\n{sanitized_tb}\n")
+        sys.stderr.flush()
+        raise RuntimeError(f"Database connectivity check failed: {type(exc).__name__}: {sanitized_msg}") from None
 
 
 @app.get("/")
